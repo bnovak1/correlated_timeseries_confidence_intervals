@@ -1,4 +1,4 @@
-# correlated_timeseries_confidence_intervals
+# Correlated timeseries confidence intervals
 
 ## Purpose
 
@@ -57,9 +57,9 @@ optional arguments:
 * -nb NBOOTSTRAP, --nbootstrap NBOOTSTRAP
   * Number of bootstrap samples. Default is 100.
 * -np NPROCS, --nprocs NPROCS
-  * Number of processes to use for calculation. Default is the total number of available cores.
+  * Number of processors to use for calculation. Default is the all available.
 
-### Examples
+### Example
 
 Analyze column 1 of the specified file. Use nanoseconds (ns) for the time unit with an equilibration time of 0.5 ns. All other options default.
 
