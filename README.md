@@ -57,7 +57,7 @@ optional arguments:
 * -nb NBOOTSTRAP, --nbootstrap NBOOTSTRAP
   * Number of bootstrap samples. Default is 100.
 * -np NPROCS, --nprocs NPROCS
-  * Number of processors to use for calculation. Default is the all available.
+  * Number of processors to use for calculation. Default is all available.
 
 ### Example
 
