@@ -20,7 +20,8 @@ See here for more details.
 
 ## Usage
 
-usage:  
+### Command line
+
 confidence_interval.py [-h] [-op OUTPREFIX] [-id INDIR] [-od OUTDIR] [-tu TIME_UNIT] [-eq EQTIME] [-sk SKIP] [-vp] [-sl SIG_LEVEL] [-mb MIN_BLOCKS] [-bsn BLOCK_SIZE_NUMBER] [-cf CUSTOM_FUNC] [-nb NBOOTSTRAP] [-np NPROCS] infile colnum  
 
 positional arguments:
@@ -59,12 +60,26 @@ optional arguments:
 * -np NPROCS, --nprocs NPROCS
   * Number of processors to use for calculation. Default is all available.
 
-### Example
+#### Example
 
 Analyze column 1 of the specified file. Use nanoseconds (ns) for the time unit with an equilibration time of 0.5 ns. All other options default.
 
 ```shell
 python confidence_interval.py ./velocities/ads_lower_all_velocity.xvg 1 -tu ns -eq 0.5
+```
+
+### Script
+
+```python
+from confidence_interval import ConfidenceInterval
+
+get_confidence_interval = ConfidenceInterval(infile, colnum)
+get_confidence_interval(outfile_prefix=OUTPREFIX, eqtime=EQTIME, skip=SKIP,
+                        indir=INDIR, time_unit=TIME_UNIT,
+                        vary_prefactor=VARY_PREFAC, sig_level=SIG_LEVEL,
+                        block_size_number=BLOCK_SIZE_NUMBER, min_blocks=MIN_BLOCKS,
+                        custom_func=CUSTOM_FUNC, nbootstrap=NBOOTSTRAP,
+                        nprocs=NPROCS, outdir=OUTDIR)
 ```
 
 ## References
