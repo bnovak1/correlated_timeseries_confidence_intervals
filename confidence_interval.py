@@ -221,10 +221,26 @@ class ConfidenceInterval:
 
                         continue
 
+            # Number of effective samples and correlation time where standard error has reached 99%
+            # of its limitng value
+            se_target = 0.99*se_extrap
+            if se_target > se[-1, ifunc]:
+                t0 = se[-1, ifunc]
+            else:
+                ind = np.argmin(np.abs(se_target - se[:, ifunc]))
+                t0 = se[ind, ifunc]
+            min_result = opt.minimize(se_diff, t0,
+                                      args=(se_target, fit.params['prefactor'], fit.params['alpha'],
+                                            fit.params['tau1'], fit.params['tau2']),
+                                      method='Nelder-Mead')
+            t_corr = min_result.x[0]
+            n_eff = min_blocks*block_lengths[-1]/t_corr
+
+
             # Save residuals vs. number of blocks to file
             outdata = np.column_stack((nblocks, fit.residual))
             np.savetxt(outdir + '/' + outfile_prefix + 'residuals_' + str(ifunc) + '.dat', outdata,
-                       header='Number of blocks | Residuals of standard error | Residuals of uncertainty')
+                       header='No. of blocks | Residuals of standard error | Residuals of uncertainty')
 
             # save fit
             outdata = np.column_stack((block_lengths, se[:, ifunc], se[:, ifunc]-fit.residual))
@@ -237,10 +253,11 @@ class ConfidenceInterval:
 
             outdata = np.column_stack((mean_data[ifunc], se_extrap, unc_extrap, fit.params['prefactor'],
                                               fit.params['alpha'], fit.params['tau1'],
-                                              fit.params['tau2']))
+                                              fit.params['tau2'], t_corr, n_eff))
             np.savetxt(outdir + '/' + outfile_prefix + 'block_error_extrapolation_' + str(ifunc) + '.dat',
                        outdata, header='Mean, Standard error, uncertainty, prefactor, alpha, ' + \
-                       'tau1 (' + time_unit + '), tau2(' + time_unit + ')')
+                       'tau1 (' + time_unit + '), tau2(' + time_unit + '), correlation time (' + \
+                       time_unit + '), effective number of samples')
 
             logfile.close()
 
@@ -395,6 +412,31 @@ def extrap(prefactor, alpha, tau1, tau2):
     #     tau1 = params[1]
     #     tau2 = params[2]
     #     return np.sum((self._se_func(prefactor, alpha, tau1, t, tau2) - se)**2.0)
+
+def se_diff(t, se_target, prefactor, alpha, tau1, tau2):
+    """
+    Description
+    ----
+    Difference squared between the fitted function and a target standard error.
+    Used to solve for block length at the target standard error.
+
+    Inputs
+    ----
+    :t: Block length in time units.
+    :se_target: Target standard error.
+    :prefactor: Prefactor.
+    :alpha: Fraction for tau1 term.
+    :tau1: Time constant for first term.
+    :tau2: Time constant for second term.
+
+    Outputs
+    ----
+    Difference squared between the fitted function at t and se_target.
+    """
+
+    se = np.sqrt(prefactor*(alpha*tau1*(1.0 + (tau1/t)*(np.exp(-t/tau1) - 1.0)) + \
+                            (1.0 - alpha)*tau2*(1.0 + (tau2/t)*(np.exp(-t/tau2) - 1.0))))
+    return (se - se_target)**2.0
 
 if __name__ == "__main__":
 
