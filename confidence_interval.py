@@ -35,14 +35,16 @@ If no type is given then the variable is logical and only the flag is needed.
 """
 
 
+import argparse
+import os
+
 from arch.bootstrap import StationaryBootstrap
 from joblib import Parallel, delayed, cpu_count
 from lmfit import minimize, Parameters
 import numpy as np
-from scipy.interpolate import interp1d
 import scipy.optimize as opt
 import scipy.stats as stats
-import argparse, inspect, os, sys
+
 
 class ConfidenceInterval:
 
@@ -88,7 +90,7 @@ class ConfidenceInterval:
         self._nbootstrap = nbootstrap
         self._custom_func = custom_func
 
-        if outfile_prefix == None:
+        if outfile_prefix is None:
             # prefix for output files from infile
             outfile_prefix = '.'.join(self._infile.split('.')[:-1]) + '_'
 
@@ -152,7 +154,8 @@ class ConfidenceInterval:
                 tau1_ini = np.random.rand()*block_lengths[-1]
                 alpha_max = np.mean(se[-3:])**2.0/(tau1_ini*prefactor_ini)
                 alpha_ini = np.random.rand()*min(alpha_max, 1.0)
-                tau2_ini = ((np.mean(se[-3:])**2.0/prefactor_ini) - alpha_ini*tau1_ini)/(1.0 - alpha_ini)
+                tau2_ini = ((np.mean(se[-3:])**2.0/prefactor_ini) - alpha_ini*tau1_ini)/\
+                           (1.0 - alpha_ini)
 
                 params.add('alpha', value=alpha_ini, min=0.0, max=1.0)
                 params.add('tau1', value=tau1_ini)
@@ -160,7 +163,8 @@ class ConfidenceInterval:
 
                 try:
 
-                    fit = minimize(residual, params, args=(block_lengths, se[:, ifunc], wghts), method='nelder')
+                    fit = minimize(residual, params, args=(block_lengths, se[:, ifunc], wghts),
+                                   method='nelder')
                     prefactor = fit.params['prefactor'].value
                     alpha = fit.params['alpha'].value
                     tau1 = fit.params['tau1'].value
@@ -170,7 +174,8 @@ class ConfidenceInterval:
 
                     break
 
-                except ValueError: fit_cnt += 1
+                except ValueError:
+                    fit_cnt += 1
 
                 if fit_cnt > 1000:
                     tau1 = -1
@@ -195,7 +200,8 @@ class ConfidenceInterval:
 
                     try:
 
-                        fit = minimize(residual, params, args=(block_lengths, se[:, ifunc], wghts), method='nelder')
+                        fit = minimize(residual, params, args=(block_lengths, se[:, ifunc], wghts),
+                                       method='nelder')
                         prefactor = fit.params['prefactor'].value
                         tau1 = fit.params['tau1'].value
                         se_extrap = extrap(prefactor, 1.0, tau1, 0.0)
@@ -203,18 +209,23 @@ class ConfidenceInterval:
 
                         break
 
-                    except ValueError: fit_cnt += 1
+                    except ValueError:
+                        fit_cnt += 1
 
                     if fit_cnt > 1000:
 
                         outdata = np.column_stack((block_lengths, se[:, ifunc]))
-                        np.savetxt(outdir + '/' + outfile_prefix + 'block_fit_' + str(ifunc) + '.dat',
-                                   outdata, header='Time (' + time_unit + '), Standard error')
+
+                        np.savetxt(\
+                            os.path.join(outdir,
+                                         outfile_prefix + 'block_fit_' + str(ifunc) + '.dat'),
+                            outdata, header='Time (' + time_unit + '), Standard error')
 
                         se_extrap = np.mean(se[-3:])
                         unc_extrap = unc_factor*se_extrap
                         outdata = np.array([se_extrap, unc_extrap]).reshape(1, -1)
-                        np.savetxt(outdir + '/' + outfile_prefix + 'block_error_extrapolation_' + str(ifunc) + '.dat',
+                        np.savetxt(os.path.join(outdir, outfile_prefix + \
+                                                'block_error_extrapolation_' + str(ifunc) + '.dat'),
                                    outdata,
                                    header='Failed fit, use means of SE, unc values for 3 ' + \
                                                        'points with longest block lengths')
@@ -239,8 +250,9 @@ class ConfidenceInterval:
 
             # Save residuals vs. number of blocks to file
             outdata = np.column_stack((nblocks, fit.residual))
-            np.savetxt(outdir + '/' + outfile_prefix + 'residuals_' + str(ifunc) + '.dat', outdata,
-                       header='No. of blocks | Residuals of standard error | Residuals of uncertainty')
+            np.savetxt(\
+                outdir + '/' + outfile_prefix + 'residuals_' + str(ifunc) + '.dat', outdata,
+                header='No. of blocks | Residuals of standard error | Residuals of uncertainty')
 
             # save fit
             outdata = np.column_stack((block_lengths, se[:, ifunc], se[:, ifunc]-fit.residual))
@@ -251,11 +263,14 @@ class ConfidenceInterval:
             # Extrapolate to infinite time, save mean, se, uncertainty, parameters
             logfile.write("Extrapolated standard error: " + str(se_extrap) + '\n\n')
 
-            outdata = np.column_stack((mean_data[ifunc], se_extrap, unc_extrap, fit.params['prefactor'],
-                                              fit.params['alpha'], fit.params['tau1'],
-                                              fit.params['tau2'], t_corr, n_eff))
-            np.savetxt(outdir + '/' + outfile_prefix + 'block_error_extrapolation_' + str(ifunc) + '.dat',
-                       outdata, header='Mean, Standard error, uncertainty, prefactor, alpha, ' + \
+            outdata = np.column_stack((mean_data[ifunc], se_extrap, unc_extrap,
+                                       fit.params['prefactor'], fit.params['alpha'],
+                                       fit.params['tau1'], fit.params['tau2'], t_corr, n_eff))
+            np.savetxt(\
+                os.path.join(outdir,
+                             outfile_prefix + 'block_error_extrapolation_' + str(ifunc) + '.dat'),
+                outdata,
+                header='Mean, Standard error, uncertainty, prefactor, alpha, ' + \
                        'tau1 (' + time_unit + '), tau2(' + time_unit + '), correlation time (' + \
                        time_unit + '), effective number of samples')
 
@@ -296,17 +311,15 @@ class ConfidenceInterval:
 
         infile = self._indir + '/' + self._infile
 
-        fid = open(infile, 'r')
+        with open(infile, 'r') as fid:
 
-        cnt = 0
-        nskiprows = 0
-        while nskiprows == 0:
-            data = fid.readline()
-            if data[0] != '#' and data[0] != '@':
-                nskiprows = cnt
-            cnt = cnt + 1
-
-        fid.close()
+            cnt = 0
+            nskiprows = 0
+            while nskiprows == 0:
+                data = fid.readline()
+                if data[0] != '#' and data[0] != '@':
+                    nskiprows = cnt
+                cnt = cnt + 1
 
         return np.loadtxt(infile, skiprows=nskiprows)
 
