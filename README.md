@@ -69,7 +69,7 @@ python -m correlated_ts_ci ./velocities/ads_lower_all_velocity.xvg 1 -tu ns -eq 
 ### Script
 
 ```python
-from confidence_interval import ConfidenceInterval
+from correlated_ts_ci import ConfidenceInterval
 
 get_confidence_interval = ConfidenceInterval(infile, colnum)
 get_confidence_interval(outfile_prefix=OUTPREFIX, eqtime=EQTIME, skip=SKIP,
