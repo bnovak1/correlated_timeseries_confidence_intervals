@@ -8,42 +8,40 @@ Estimate confidence intervals in means of correlated time series with a small nu
 
 The origin of this method is in the Appendix of [1]. It based on computing standard error as a function of block length, fitting this, then extrapolating to infinite block length. For correlated data, the standard error will increase asymptotically with increasing block length. Some improvements on the original method are implemented here. The first is to give the option to vary the prefactor for the fitted function which can sometimes give a significantly better fit. The second is to give the option to perform stationary block bootstrap sampling for each block size instead of just using a single set of blocks for each block size. This significantly reduces the noise in the data and leads to better fits.
 
-See here for more details.
+## Installation
 
-## Python package requirements
-
-* arch
-* joblib
-* lmfit
-* numpy
-* scipy
+```shell
+pip install correlated_ts_ci
+```
 
 ## Usage
 
 ### Command line
 
-confidence_interval.py [-h] [-op OUTPREFIX] [-id INDIR] [-od OUTDIR] [-tu TIME_UNIT] [-eq EQTIME] [-sk SKIP] [-vp] [-sl SIG_LEVEL] [-mb MIN_BLOCKS] [-bsn BLOCK_SIZE_NUMBER] [-cf CUSTOM_FUNC] [-nb NBOOTSTRAP] [-np NPROCS] infile colnum  
+```shell
+python -m correlated_ts_ci [-h] [-op OUTPREFIX] [-id INDIR] [-od OUTDIR] [-tu TIME_UNIT] [-eq EQTIME] [-sk SKIP] [-vp] [-sl SIG_LEVEL] [-mb MIN_BLOCKS] [-bsn BLOCK_SIZE_NUMBER] [-cf CUSTOM_FUNC] [-nb NBOOTSTRAP] [-np NPROCS] infile colnum
+```
 
 positional arguments:
 * infile
   * File with time in the first column and other quantities in subsequent columns.
 * colnum
-  * Column number in the file with the quantity to be analyzed. The first column is numbered 0.
+  * Column number in the file with the quantity to be analyzed. The first column (time) is numbered 0, so this should be >= 1.
 
 optional arguments:  
 * -h, --help
   * show this help message and exit
 * -op OUTPREFIX, --outprefix OUTPREFIX
   * Prefix for output files. Default is the prefix of the input file.
-* -id INDIR, --indir INDIR 
+* -id INDIR, --indir INDIR
   * Directory input file is located in. Default is current directory.
-* -od OUTDIR, --outdir OUTDIR 
+* -od OUTDIR, --outdir OUTDIR
   * Directory to write data to. Default is current directory.
-* -tu TIME_UNIT, --time_unit TIME_UNIT 
+* -tu TIME_UNIT, --time_unit TIME_UNIT
   * String to specify time units. 'ns', 'ps', etc. Default is 'ps'.
 * -eq EQTIME, --eqtime EQTIME
   * Equilibration time in unit of input file. Default is 0.0.
-* -sk SKIP, --skip SKIP 
+* -sk SKIP, --skip SKIP
   * Only use every this many data points from the input file.
 * -vp, --vary_prefac   
   * Vary the prefactor instead of constraining it to a constant value of 2 times the standard deviation of all data divided by the total time covered by the data. This is a flag.
@@ -65,7 +63,7 @@ optional arguments:
 Analyze column 1 of the specified file. Use nanoseconds (ns) for the time unit with an equilibration time of 0.5 ns. All other options default.
 
 ```shell
-python confidence_interval.py ./velocities/ads_lower_all_velocity.xvg 1 -tu ns -eq 0.5
+python -m correlated_ts_ci ./velocities/ads_lower_all_velocity.xvg 1 -tu ns -eq 0.5
 ```
 
 ### Script
