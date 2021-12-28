@@ -236,10 +236,10 @@ class ConfidenceInterval:
             # of its limitng value
             se_target = 0.99*se_extrap
             if se_target > se[-1, ifunc]:
-                t0 = se[-1, ifunc]
+                t0 = block_lengths[-1]
             else:
                 ind = np.argmin(np.abs(se_target - se[:, ifunc]))
-                t0 = se[ind, ifunc]
+                t0 = block_lengths[ind]
             min_result = opt.minimize(se_diff, t0,
                                       args=(se_target, fit.params['prefactor'], fit.params['alpha'],
                                             fit.params['tau1'], fit.params['tau2']),
