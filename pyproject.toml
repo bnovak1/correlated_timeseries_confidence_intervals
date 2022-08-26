@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "correlated_ts_ci"
-version = "0.1.5"
+version = "0.2.0"
 description = "Estimate confidence intervals in means of correlated time series with a small number of effective samples (like molecular dynamics simulations). If your time series is long enough that the standard error levels off completely as a function of block length, then this method is overkill and simply using a block bootstrap sampling with a sufficiently large block length is probably sufficient."
 authors = ["Brian Novak <bnovak1@users.noreply.github.com>"]
 license = "GPL-3.0-or-later"

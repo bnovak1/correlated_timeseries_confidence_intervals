@@ -52,8 +52,8 @@ class ConfidenceInterval:
         '''
         Inputs
         ----
-        :infile: Input file with time in first column and variable to analyze in second column.
-                 The time step of the data is assumed to be constant.
+        :infile: Required. Input file with time in first column and variable to analyze in the
+                 second column. The time step of the data is assumed to be constant.
         :colnum int: Required. Number of column in file with quantity to analyze with
                      column numbers starting from 0.
         '''
@@ -63,7 +63,7 @@ class ConfidenceInterval:
 
     def __call__(self, outfile_prefix=None, eqtime=0.0, skip=1, indir='.', time_unit='ps',
                  vary_prefactor=False, sig_level=0.05, block_size_number=100, min_blocks=30,
-                 custom_func=None, nbootstrap=100, nprocs=1, outdir='.'):
+                 custom_func=None, nbootstrap=100, seed=42, nprocs=1, outdir='.'):
         """
         Description
         ----
@@ -80,6 +80,7 @@ class ConfidenceInterval:
         :sig_level: Significance level for confidence intervals. Default = 0.05
         :min_blocks: Minimum number of blocks. Default = 30
         :nbootstrap: Number of bootstrap samples. Default = 100
+        :seed int: Optional. Seed for random number generator. Default = 42.
         :nprocs: Number of processboes. Default = 1
         :outdir: Output directory. Default = '.'
         """
@@ -88,7 +89,11 @@ class ConfidenceInterval:
         self._eqtime = eqtime
         self._skip = skip
         self._nbootstrap = nbootstrap
+        self._seed = seed
+        self._random_state = np.random.RandomState(self._seed)
         self._custom_func = custom_func
+
+        np.random.RandomState(self._seed)
 
         if outfile_prefix is None:
             # prefix for output files from infile
@@ -163,6 +168,7 @@ class ConfidenceInterval:
 
                 try:
 
+                    np.random.seed(self._seed)
                     fit = minimize(residual, params, args=(block_lengths, se[:, ifunc], wghts),
                                    method='nelder')
                     prefactor = fit.params['prefactor'].value
@@ -200,6 +206,7 @@ class ConfidenceInterval:
 
                     try:
 
+                        np.random.seed(self._seed)
                         fit = minimize(residual, params, args=(block_lengths, se[:, ifunc], wghts),
                                        method='nelder')
                         prefactor = fit.params['prefactor'].value
@@ -339,7 +346,14 @@ class ConfidenceInterval:
         List containing mean, standard error
         """
 
-        bs = StationaryBootstrap(block_size, self._data)
+        # Update random state. If the same random state is used for different block sizes,
+        # the resulting curve is too smooth.
+        seed = np.random.randint(0, np.iinfo(np.int32).max)
+        self._random_state = np.random.RandomState(seed)
+        np.random.RandomState(seed)
+
+        # Bootstrap setup. Set random_state for reproducibility of bootstrap sampling
+        bs = StationaryBootstrap(block_size, self._data, random_state=self._random_state)
 
         try:
             bs_results = eval('bs.apply(' + self._custom_func + ', nbootstrap)')
@@ -452,6 +466,7 @@ def se_diff(t, se_target, prefactor, alpha, tau1, tau2):
     return (se - se_target)**2.0
 
 if __name__ == "__main__":
+
 
     PARSER = argparse.ArgumentParser()
 
