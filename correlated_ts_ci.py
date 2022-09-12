@@ -97,7 +97,7 @@ class ConfidenceInterval:
 
         if outfile_prefix is None:
             # prefix for output files from infile
-            outfile_prefix = '.'.join(self._infile.split('.')[:-1]) + '_'
+            outfile_prefix = '.'.join(os.path.split(self._infile)[1].split('.')[:-1]) + '_'
 
         # open log file
         logfile = open(outdir + '/' + outfile_prefix + 'log.txt', 'w')
