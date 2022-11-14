@@ -48,7 +48,7 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 lint: ## check style with pylint
-    pylint *.py tests/*.py
+    pylint --extension-pkg-whitelist=numpy *.py tests/*.py
 
 test: ## run tests quickly with the default Python
 	pytest
