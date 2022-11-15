@@ -68,10 +68,10 @@ python -m correlated_ts_ci.py [-h] data_file colnum input_file
 Analyze column 1 of the specified file. Use nanoseconds (ns) for the time unit with an equilibration time of 0.5 ns. All other options default.
 
 ```shell
-python -m correlated_ts_ci ./velocities/ads_lower_all_velocity.xvg 1 ./velocities/ads_lower_all_velocity.json
+python -m correlated_ts_ci ads_lower_all_velocity.xvg 1 ads_lower_all_velocity.json
 ```
 
-./velocities/ads_lower_all_velocity.json:
+ads_lower_all_velocity.json:
 
 ```JSON
 {
