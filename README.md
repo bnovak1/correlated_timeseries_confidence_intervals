@@ -19,51 +19,65 @@ pip install correlated_ts_ci
 ### Command line
 
 ```shell
-python -m correlated_ts_ci [-h] [-op OUTPREFIX] [-id INDIR] [-od OUTDIR] [-tu TIME_UNIT] [-eq EQTIME] [-sk SKIP] [-vp] [-sl SIG_LEVEL] [-mb MIN_BLOCKS] [-bsn BLOCK_SIZE_NUMBER] [-cf CUSTOM_FUNC] [-nb NBOOTSTRAP] [-np NPROCS] infile colnum
+python -m correlated_ts_ci.py [-h] data_file colnum input_file
 ```
 
-positional arguments:
-* infile
+#### positional arguments
+
+* data_file
   * File with time in the first column and other quantities in subsequent columns.
 * colnum
-  * Column number in the file with the quantity to be analyzed. The first column (time) is numbered 0, so this should be >= 1.
+  * Column number in the file with the quantity to be analyzed. The first column is numbered 0.
+* input_file
+  * JSON file with input parameters.
+  
+#### JSON keys in input_file
 
-optional arguments:  
-* -h, --help
-  * show this help message and exit
-* -op OUTPREFIX, --outprefix OUTPREFIX
-  * Prefix for output files. Default is the prefix of the input file.
-* -id INDIR, --indir INDIR
-  * Directory input file is located in. Default is current directory.
-* -od OUTDIR, --outdir OUTDIR
-  * Directory to write data to. Default is current directory.
-* -tu TIME_UNIT, --time_unit TIME_UNIT
-  * String to specify time units. 'ns', 'ps', etc. Default is 'ps'.
-* -eq EQTIME, --eqtime EQTIME
-  * Equilibration time in unit of input file. Default is 0.0.
-* -sk SKIP, --skip SKIP
-  * Only use every this many data points from the input file.
-* -vp, --vary_prefac   
-  * Vary the prefactor instead of constraining it to a constant value of 2 times the standard deviation of all data divided by the total time covered by the data. This is a flag.
-* -sl SIG_LEVEL, --sig_level SIG_LEVEL
-  * Significance level for computing confidence intervals. Default is 0.05.
-* -mb MIN_BLOCKS, --min_blocks MIN_BLOCKS
-  * Minimum number of blocks. Default is 30.
-* -bsn BLOCK_SIZE_NUMBER, --block_size_number BLOCK_SIZE_NUMBER
+* outfile_prefix
+  * Prefix for ouput file names. Defaults to data_file w/o extension + '_'.
+* indir
+  * Path to data_file and input_file. Defaults to current directory.
+* outdir
+  * Output directory. Defaults to current directory.
+* time_unit
+  * Units of time in data_file. Default = 'ps'
+* eqtime (float)
+  * Equilibration time in time_unit. Defaults to 0.0.
+* skip (int)
+  * Frequency to keep data. Default = 1, keep all data.
+* seed (int)
+  * Seed for random number generator. Default = 42.
+* nbootstrap (int)
+  * Number of bootstrap samples. Default = 100.
+* custom_function
+  * Custom lambda function taking a single argument. This function contains the definition of the quantities which you wish to obtain the uncertainties for and should return a single value or a numpy row vector. Default function is np.mean.
+  * Example -- lambda x: np.hstack((np.mean(x), np.percentile(x, 90)))
+* vary_prefactor (bool)
+  * Vary the prefactor instead of constraining it to a constant value of 2 times the standard deviation of all data divided by the total time covered by the data. Defaults to false.
+* sig_level (float)
+  * Significance level for confidence intervals. Default = 0.05.
+* min_blocks (int)
+  * Minimum number of blocks. Default = 30.
+* block_size_number (int)
   * Number of block sizes to consider. Default is 100.
-* -cf CUSTOM_FUNC, --custom_func CUSTOM_FUNC
-  * Custom lambda function taking a single argument. This function contains the definition of the quantities which you wish to obtain the uncertainties for and should return a single value or a numpy row vector. Example -- lambda x: np.hstack((np.mean(x), np.percentile(x, 90))). If not specified, only np.mean is used.
-* -nb NBOOTSTRAP, --nbootstrap NBOOTSTRAP
-  * Number of bootstrap samples. Default is 100.
-* -np NPROCS, --nprocs NPROCS
-  * Number of processors to use for calculation. Default is all available.
+* nprocs (int)
+  * Number of processes to use. Default = 1.
 
 #### Example
 
 Analyze column 1 of the specified file. Use nanoseconds (ns) for the time unit with an equilibration time of 0.5 ns. All other options default.
 
 ```shell
-python -m correlated_ts_ci ./velocities/ads_lower_all_velocity.xvg 1 -tu ns -eq 0.5
+python -m correlated_ts_ci ./velocities/ads_lower_all_velocity.xvg 1 ./velocities/ads_lower_all_velocity.json
+```
+
+./velocities/ads_lower_all_velocity.json:
+
+```JSON
+{
+    "time_unit": "ns",
+    "eqtime": 0.5
+}
 ```
 
 ### Script
@@ -71,13 +85,8 @@ python -m correlated_ts_ci ./velocities/ads_lower_all_velocity.xvg 1 -tu ns -eq 
 ```python
 from correlated_ts_ci import ConfidenceInterval
 
-get_confidence_interval = ConfidenceInterval(infile, colnum)
-get_confidence_interval(outfile_prefix=OUTPREFIX, eqtime=EQTIME, skip=SKIP,
-                        indir=INDIR, time_unit=TIME_UNIT,
-                        vary_prefactor=VARY_PREFAC, sig_level=SIG_LEVEL,
-                        block_size_number=BLOCK_SIZE_NUMBER, min_blocks=MIN_BLOCKS,
-                        custom_func=CUSTOM_FUNC, nbootstrap=NBOOTSTRAP,
-                        nprocs=NPROCS, outdir=OUTDIR)
+get_confidence_interval = ConfidenceInterval(data_file, colnum, input_file)
+get_confidence_interval()
 ```
 
 ## References
