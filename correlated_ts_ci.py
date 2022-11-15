@@ -53,7 +53,7 @@ class ConfidenceInterval:
         self.random_state = None
 
         self.read_input_file()
-        
+
         self.data = None
 
     def __call__(self):
@@ -67,6 +67,7 @@ class ConfidenceInterval:
         time_unit = self.inputs["time_unit"]
 
         np.random.RandomState(self.inputs["seed"])
+        np.random.seed(self.inputs["seed"])
 
         if self.inputs["outfile_prefix"] is None:
             # prefix for output files from data_file
@@ -142,19 +143,18 @@ class ConfidenceInterval:
                 alpha_ini = np.random.rand() * min(alpha_max, 1.0)
                 term1 = np.mean(standard_err[-3:]) ** 2.0 / prefactor_ini
                 tau2_ini = (term1 - alpha_ini * tau1_ini) / (1.0 - alpha_ini)
-
+                
                 params.add("alpha", value=alpha_ini, min=0.0, max=1.0)
                 params.add("tau1", value=tau1_ini)
                 params.add("tau2", value=tau2_ini)
 
                 try:
 
-                    np.random.seed(self.inputs["seed"])
                     fit = minimize(
                         residual,
                         params,
                         args=(block_lengths, standard_err[:, ifunc], wghts),
-                        method="nelder",
+                        method="nelder"
                     )
                     prefactor = fit.params["prefactor"].value
                     alpha = fit.params["alpha"].value
@@ -193,12 +193,11 @@ class ConfidenceInterval:
 
                     try:
 
-                        np.random.seed(self.inputs["seed"])
                         fit = minimize(
                             residual,
                             params,
                             args=(block_lengths, standard_err[:, ifunc], wghts),
-                            method="nelder",
+                            method="nelder"
                         )
                         prefactor = fit.params["prefactor"].value
                         tau1 = fit.params["tau1"].value
@@ -215,7 +214,7 @@ class ConfidenceInterval:
                         outdata = np.column_stack((block_lengths, standard_err[:, ifunc]))
 
                         np.savetxt(
-                            outfile_path + "block_fit_" + str(ifunc) + ".dat",
+                            outfile_path + "block_error_fit_" + str(ifunc) + ".dat",
                             outdata,
                             header="Time (" + time_unit + "), Standard error",
                         )
@@ -328,7 +327,7 @@ class ConfidenceInterval:
             contains the definition of the quantities which you wish to obtain the \
             uncertainties for and should return a single value or a numpy row vector. \
             Example -- lambda x: np.hstack((np.mean(x), np.percentile(x, 90))). Defaults to np.mean.
-        :vary_prefator bool: Vary the prefactor instead of constraining it to a constant value \
+        :vary_prefactor bool: Vary the prefactor instead of constraining it to a constant value \
             of 2 times the standard deviation of all data divided by the total time covered by \
             the data. Defaults to False.
         :sig_level float: Significance level for confidence intervals. Default = 0.05.

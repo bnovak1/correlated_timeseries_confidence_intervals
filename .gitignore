@@ -1,6 +1,10 @@
-test*
+tests/
 dist/
 __pycache__/
 
 # pycharm
 .idea/
+
+# For testing
+copy.py
+test.py
