@@ -1,0 +1,4 @@
+{
+    "outdir": "tests/vary_prefactor_col_1",
+    "vary_prefactor": true
+}

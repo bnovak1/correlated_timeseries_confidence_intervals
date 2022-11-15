@@ -143,7 +143,7 @@ class ConfidenceInterval:
                 alpha_ini = np.random.rand() * min(alpha_max, 1.0)
                 term1 = np.mean(standard_err[-3:]) ** 2.0 / prefactor_ini
                 tau2_ini = (term1 - alpha_ini * tau1_ini) / (1.0 - alpha_ini)
-                
+
                 params.add("alpha", value=alpha_ini, min=0.0, max=1.0)
                 params.add("tau1", value=tau1_ini)
                 params.add("tau2", value=tau2_ini)
@@ -154,7 +154,7 @@ class ConfidenceInterval:
                         residual,
                         params,
                         args=(block_lengths, standard_err[:, ifunc], wghts),
-                        method="nelder"
+                        method="nelder",
                     )
                     prefactor = fit.params["prefactor"].value
                     alpha = fit.params["alpha"].value
@@ -197,7 +197,7 @@ class ConfidenceInterval:
                             residual,
                             params,
                             args=(block_lengths, standard_err[:, ifunc], wghts),
-                            method="nelder"
+                            method="nelder",
                         )
                         prefactor = fit.params["prefactor"].value
                         tau1 = fit.params["tau1"].value
@@ -351,13 +351,13 @@ class ConfidenceInterval:
             "sig_level": 0.05,
             "block_size_number": 100,
             "min_blocks": 30,
-            "nprocs": 1
+            "nprocs": 1,
         }
 
         # Read inputs from input_file.
         with open(self.input_file, encoding="utf-8", mode="r") as json_file:
             inputs = json.load(json_file)
-            
+
         # Assign to values from input_file or defaults
         for key, value in defaults.items():
             if key in inputs:
