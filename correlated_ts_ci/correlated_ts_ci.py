@@ -15,15 +15,12 @@ import argparse
 import json
 import os
 
-from asteval import Interpreter
-import numpy as np
-import scipy.optimize as opt
-from scipy import stats
 from arch.bootstrap import StationaryBootstrap
 from joblib import Parallel, delayed
 from lmfit import Parameters, minimize
-
-aeval = Interpreter()
+import numpy as np
+import scipy.optimize as opt
+from scipy import stats
 
 
 class ConfidenceInterval:
